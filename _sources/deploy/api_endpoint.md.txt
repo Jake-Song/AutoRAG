@@ -51,17 +51,9 @@ INFO     [api.py:199] >> Public API URL:          api.py:199
 This is the URL to your local server, so use it as the host at request.
 
 
-## API Endpoint
+## Endpoints
 
-## Example API Documentation
-
-### Version: 1.0.0
-
----
-
-### Endpoints
-
-#### 1. `/v1/run` (POST)
+### 1. `/v1/run` (POST)
 
 - **Summary**: Run a query and get generated text with retrieved passages.
 - **Request Body**:
@@ -80,6 +72,7 @@ This is the URL to your local server, so use it as the host at request.
           - **Properties**:
             - `content` (string): The content of the passage.
             - `doc_id` (string): Document ID.
+            - `score` (string): The relevance score of the retrieved passage.
             - `filepath` (string, nullable): File path.
             - `file_page` (integer, nullable): File page number.
             - `start_idx` (integer, nullable): Start index.
@@ -87,7 +80,73 @@ This is the URL to your local server, so use it as the host at request.
 
 ---
 
-#### 2. `/v1/stream` (POST)
+### 2. `/v1/retrieve` (POST)
+
+This API endpoint allows developers to retrieve documents based on a specified query.
+It will ignore generator and prompt maker, only return retrieved passages.
+
+The request must include a JSON object with the following structure:
+
+```json
+{
+  "query": "your query string here"
+}
+```
+
+#### Parameters
+- **query** (string, required): The search string used to retrieve documents.
+
+### Example Request
+```json
+{
+  "query": "latest trends in AI"
+}
+```
+
+#### Success Response
+**HTTP Status Code:** `200 OK`
+
+### Response Body
+
+#### Properties
+- **passages** (array): An array of documents retrieved based on the query.
+  - **doc_id** (string): The unique identifier for each document.
+  - **content** (string): The content of the retrieved document.
+  - **score** (number, float): The relevance score of the retrieved document.
+  - **filepath** (string, optional): The file path of the document.
+  - **file_page** (integer, optional): The page number of the document.
+  - **start_idx** (integer, optional): The start index of the retrieved passage from the parsed data.
+  - **end_idx** (integer, optional): The end index of the retrieved passage from the parsed data.
+
+#### Example Response
+```json
+{
+  "passages": [
+    {
+      "doc_id": "doc123",
+      "content": "Artificial Intelligence is transforming industries.",
+      "score": 0.98,
+      "filepath": "path/to/file",
+      "file_page": 2,
+      "start_idx": 100,
+      "end_idx": 150
+    },
+    {
+      "doc_id": "doc456",
+      "content": "The future of AI includes advancements in machine learning.",
+      "score": 0.92,
+      "filepath": null,
+      "file_page": null,
+      "start_idx": null,
+      "end_idx": null
+    }
+  ]
+}
+```
+
+---
+
+### 3. `/v1/stream` (POST)
 
 - **Summary**: Stream generated text with retrieved passages.
 - **Description**: This endpoint streams the generated text line by line. The `retrieved_passage` is sent first, followed by the `result` streamed incrementally.
@@ -108,6 +167,7 @@ This is the URL to your local server, so use it as the host at request.
           - **Properties**:
             - `content` (string): The content of the passage.
             - `doc_id` (string): Document ID.
+            - `score` (string): The relevance score of the retrieved passage.
             - `filepath` (string, nullable): File path.
             - `file_page` (integer, nullable): File page number.
             - `start_idx` (integer, nullable): Start index.
@@ -116,7 +176,7 @@ This is the URL to your local server, so use it as the host at request.
 
 ---
 
-#### 3. `/version` (GET)
+### 4. `/version` (GET)
 
 - **Summary**: Get the API version.
 - **Description**: Returns the current version of the API as a string.
@@ -229,6 +289,14 @@ curl -X POST "http://example.com/v1/stream" \
      -H "Content-Type: application/json" \
      -d '{"query": "example query", "result_column": "generated_texts"}' \
      --no-buffer
+```
+
+### `/v1/retrieve` (POST)
+
+```bash
+curl -X POST "http://example.com/v1/retrieve" \
+     -H "Content-Type: application/json" \
+     -d '{"query": "example query"}'
 ```
 
 #### `/version` (GET)
